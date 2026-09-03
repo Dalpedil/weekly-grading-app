@@ -54,9 +54,9 @@ app.post('/api/submit', async (req, res) => {
   `;
   sendSmtpEmail.sender = { 
     name: 'Grading Portal', 
-    email: process.env.BREVO_SENDER_EMAIL 
+    email: process.env.BREVO_SENDER_EMAIL || 'diland@gmail.com' 
   };
-  sendSmtpEmail.to = [{ email: process.env.RECIPIENT_EMAIL }];
+  sendSmtpEmail.to = [{ email: process.env.RECIPIENT_EMAIL || 'emejayani@gmail.com' }];
 
   try {
     await apiInstance.sendTransacEmail(sendSmtpEmail);
