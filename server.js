@@ -1,11 +1,16 @@
 require('dotenv').config();
 const express = require('express');
-const { Resend } = require('resend');
+const brevo = require('@getbrevo/brevo');
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 app.use(cors());
 app.use(express.json());
@@ -26,40 +31,38 @@ app.post('/api/submit', async (req, res) => {
     </tr>
   `).join('');
 
+  const sendSmtpEmail = new brevo.SendSmtpEmail();
+  sendSmtpEmail.subject = `Weekly Progress Grades: ${supervisor}`;
+  sendSmtpEmail.htmlContent = `
+    <h3>Weekly Progress Assessment</h3>
+    <p><strong>Supervisor:</strong> ${supervisor}</p>
+    <p><strong>Milestone:</strong> ${weekProgress}</p>
+    <p><strong>Submitted Date:</strong> ${new Date().toLocaleString()}</p>
+
+    <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; margin-top: 15px;">
+      <thead>
+        <tr style="background-color: #f2f2f2;">
+          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
+          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
+          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRows}
+      </tbody>
+    </table>
+  `;
+  sendSmtpEmail.sender = { 
+    name: 'Grading Portal', 
+    email: process.env.BREVO_SENDER_EMAIL 
+  };
+  sendSmtpEmail.to = [{ email: process.env.RECIPIENT_EMAIL }];
+
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'Grading Portal <onboarding@resend.dev>',
-      to: [process.env.RECIPIENT_EMAIL || 'diland@gmail.com'],
-      subject: `Weekly Progress Grades: ${supervisor}`,
-      html: `
-        <h3>Weekly Progress Assessment</h3>
-        <p><strong>Supervisor:</strong> ${supervisor}</p>
-        <p><strong>Milestone:</strong> ${weekProgress}</p>
-        <p><strong>Submitted Date:</strong> ${new Date().toLocaleString()}</p>
-
-        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; margin-top: 15px;">
-          <thead>
-            <tr style="background-color: #f2f2f2;">
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
-      `
-    });
-
-    if (error) {
-      console.error('Resend error:', error);
-      return res.status(500).json({ error: error.message });
-    }
-
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
     res.status(200).json({ message: 'Grades successfully emailed!' });
-  } catch (err) {
-    console.error('Server error:', err);
+  } catch (error) {
+    console.error('Brevo API error:', error.response ? error.response.body : error);
     res.status(500).json({ error: 'Failed to send the email.' });
   }
 });
