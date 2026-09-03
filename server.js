@@ -1,30 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const cors = require('cors');
 const path = require('path');
-const dns = require('dns');
-
-// Force Node to prefer IPv4 over IPv6 on cloud hosts like Render
-if (dns.setDefaultResultOrder) {
-  dns.setDefaultResultOrder('ipv4first');
-}
 
 const app = express();
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  family: 4, // Force IPv4
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
 
 app.post('/api/submit', async (req, res) => {
   const { supervisor, weekProgress, evaluations } = req.body;
@@ -41,36 +26,40 @@ app.post('/api/submit', async (req, res) => {
     </tr>
   `).join('');
 
-  const mailOptions = {
-    from: `"Grading Portal" <${process.env.SMTP_EMAIL}>`,
-    to: process.env.RECIPIENT_EMAIL,
-    subject: `Weekly Progress Grades: ${supervisor}`,
-    html: `
-      <h3>Weekly Progress Assessment</h3>
-      <p><strong>Supervisor:</strong> ${supervisor}</p>
-      <p><strong>Milestone:</strong> ${weekProgress}</p>
-      <p><strong>Submitted Date:</strong> ${new Date().toLocaleString()}</p>
-
-      <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; margin-top: 15px;">
-        <thead>
-          <tr style="background-color: #f2f2f2;">
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
-    `
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
+    const { data, error } = await resend.emails.send({
+      from: 'Grading Portal <onboarding@resend.dev>',
+      to: [process.env.RECIPIENT_EMAIL || 'diland@gmail.com'],
+      subject: `Weekly Progress Grades: ${supervisor}`,
+      html: `
+        <h3>Weekly Progress Assessment</h3>
+        <p><strong>Supervisor:</strong> ${supervisor}</p>
+        <p><strong>Milestone:</strong> ${weekProgress}</p>
+        <p><strong>Submitted Date:</strong> ${new Date().toLocaleString()}</p>
+
+        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; margin-top: 15px;">
+          <thead>
+            <tr style="background-color: #f2f2f2;">
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      `
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
     res.status(200).json({ message: 'Grades successfully emailed!' });
-  } catch (error) {
-    console.error('Email error:', error);
+  } catch (err) {
+    console.error('Server error:', err);
     res.status(500).json({ error: 'Failed to send the email.' });
   }
 });
