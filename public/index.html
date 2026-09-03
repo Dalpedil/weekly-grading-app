@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Progress Grading</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; color: #222; }
+    h2 { margin-bottom: 12px; }
+    .instruction-box { background-color: #f3f4f6; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+    .form-group { margin-bottom: 20px; }
+    label { font-weight: bold; display: block; margin-bottom: 6px; font-size: 14px; }
+    select { width: 100%; padding: 8px 10px; box-sizing: border-box; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 9px 12px; text-align: left; }
+    th { background-color: #f8fafc; }
+    td select { width: 100%; padding: 6px 8px; }
+    button { margin-top: 24px; padding: 12px 20px; background-color: #0066cc; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; }
+    button:disabled { background-color: #aaa; }
+    #status { margin-top: 15px; font-weight: bold; text-align: center; }
+    .empty-msg { text-align: center; color: #666; font-style: italic; padding: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Weekly Progress Grading</h2>
+  <div class="instruction-box">
+    <strong>Instructions:</strong><br>
+    1 = Very Dissatisfied | 5 = Very Satisfied<br><br>
+    <strong>Step 05 Progress:</strong> Project investment plan and the implementation strategy [19 April to 02 May]
+  </div>
+
+  <form id="gradingForm">
+    <div class="form-group">
+      <label for="supervisorSelect">Supervisor:</label>
+      <select id="supervisorSelect" required>
+        <option value="">-- Select Supervisor --</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 120px;">Index No</th>
+          <th>Student Name</th>
+          <th style="width: 230px;">Grade</th>
+        </tr>
+      </thead>
+      <tbody id="studentTableBody">
+        <tr>
+          <td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button type="submit" id="submitBtn">Submit Grades</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const dataList = [
+      { supervisor: "Prof Mahanama", index: "212317G", name: "Herath H.M.H.S." },
+      { supervisor: "Mr.Rifat Mahamood", index: "212346T", name: "Prabhasara P.V.D." },
+      { supervisor: "Dr Amila Jayasinghe", index: "222301L", name: "Abeywardhana B.A.S.M.N." },
+      { supervisor: "Archt. Plnr. Kokila Sooriyagoda", index: "222303U", name: "Anurodhani W.I." },
+      { supervisor: "Dr Lakshika Meetiyagoda", index: "222305D", name: "Bandara K.A.T.S." },
+      { supervisor: "Prof Mahanama", index: "222306G", name: "Devindi B.M." },
+      { supervisor: "Prof. Jagath Munasinghe", index: "222307K", name: "Devmini S.M.V." },
+      { supervisor: "Plnr. EE Wijegunarathne", index: "222309T", name: "Etampawala E.R.S.N." },
+      { supervisor: "Dr Amila Jayasinghe", index: "222310M", name: "Fernando M.T.K." },
+      { supervisor: "Plnr. EE Wijegunarathne", index: "222311R", name: "Perera G.G.N." },
+      { supervisor: "Plnr. Samith Madushanka", index: "222315H", name: "Ishara W.M.A.D." },
+      { supervisor: "Plnr. Prathibhani Bandusena", index: "222317P", name: "Jathuppiriyan J." },
+      { supervisor: "Archt. D.Dharmasena", index: "222320T", name: "Jayawansha I.C.L." },
+      { supervisor: "Archt. Plnr. Kokila Sooriyagoda", index: "222322C", name: "Kalpanee B.G.W." },
+      { supervisor: "Dr.RMSR Rathnayake", index: "222323F", name: "Krishnakumar R." },
+      { supervisor: "Plnr. Prathibhani Bandusena", index: "222326R", name: "Malsha B.H." },
+      { supervisor: "Plnr. Samith Madushanka", index: "222327V", name: "Nishantha B.P.T.D." },
+      { supervisor: "Archt. D.Dharmasena", index: "222330A", name: "Randeniya R.M.K.T." },
+      { supervisor: "Prof Mahanama", index: "222331D", name: "Randika R.P.S." },
+      { supervisor: "Dr Chameera De Silva", index: "222332G", name: "Rasim M.J." },
+      { supervisor: "Dr. EJ Warusavitharana", index: "222334N", name: "Rathnayake R.M.T.K." },
+      { supervisor: "Dr Chameera De Silva", index: "222335T", name: "Samarasena D.G.M.M." },
+      { supervisor: "Dr Chethika Abeynayake", index: "222337C", name: "Sathviru H.R.T." },
+      { supervisor: "Dr.RMSR Rathnayake", index: "222339J", name: "Shahidya S" },
+      { supervisor: "Dr. Vishwajith Peiris", index: "222340E", name: "Suaadh F.F." },
+      { supervisor: "Plnr. EE Wijegunarathne", index: "222342L", name: "Thevasalomy S." },
+      { supervisor: "Dr Chethika Abeynayake", index: "222343P", name: "Thilaksan S." },
+      { supervisor: "Archt. D.Dharmasena", index: "222344U", name: "Thuvaraga T." },
+      { supervisor: "Dr. TKGP Ranasinghe", index: "222347G", name: "Wickramanayaka K.N.Y." },
+      { supervisor: "Dr. PI Singhapathirana", index: "222351M", name: "Perera A.T.Y." },
+      { supervisor: "Dr Chameera De Silva", index: "222353V", name: "Weerasinghe V.O" },
+      { supervisor: "Plnr. Prathibhani Bandusena", index: "222354B", name: "Samaraweera D.S.G" },
+      { supervisor: "Dr. MCK De Silva", index: "222355E", name: "Wijerathna U.R.I" },
+      { supervisor: "Dr. PI Singhapathirana", index: "222356H", name: "Nisansala P.K.S" },
+      { supervisor: "Dr. EJ Warusavitharana", index: "222358P", name: "Bandara M.W.R" },
+      { supervisor: "Dr Rizvi Noordeen", index: "222359U", name: "Jayasiri S.S.K" },
+      { supervisor: "Mr.Rifat Mahamood", index: "222360N", name: "Wickramasinghe U.V.G.G" },
+      { supervisor: "Prof Jagath Munasinghe", index: "222361T", name: "Dasanayaka D.T.M.U" },
+      { supervisor: "Dr Lakshika Meetiyagoda", index: "222362X", name: "Hemapathirana H.P.G.K.G" },
+      { supervisor: "Dr. Vishwajith Peiris", index: "222363C", name: "Sahla M.P.F" },
+      { supervisor: "Plnr. Samith Madushanka", index: "222364F", name: "Madhavan M." },
+      { supervisor: "Dr. MCK De Silva", index: "222365J", name: "Karunarathne R.M.T.D" },
+      { supervisor: "Dr Amila Jayasinghe", index: "222367R", name: "Sanojan S." },
+      { supervisor: "Prof Jagath Munasinghe", index: "222369B", name: "Kanagasingam D." },
+      { supervisor: "Dr Rizvi Noordeen", index: "222370U", name: "Jeiyadancy T." },
+      { supervisor: "Dr. TKGP Ranasinghe", index: "222371A", name: "Thirimanna N.S." }
+    ];
+
+    const supervisorSelect = document.getElementById('supervisorSelect');
+    const tableBody = document.getElementById('studentTableBody');
+    const form = document.getElementById('gradingForm');
+    const statusMsg = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const supervisors = [...new Set(dataList.map(item => item.supervisor))].sort();
+    supervisors.forEach(sup => {
+      const opt = document.createElement('option');
+      opt.value = sup;
+      opt.textContent = sup;
+      supervisorSelect.appendChild(opt);
+    });
+
+    supervisorSelect.addEventListener('change', () => {
+      const selectedSup = supervisorSelect.value;
+      tableBody.innerHTML = '';
+
+      if (!selectedSup) {
+        tableBody.innerHTML = '<tr><td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+        return;
+      }
+
+      const assignedStudents = dataList.filter(item => item.supervisor === selectedSup);
+      assignedStudents.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-index', item.index);
+        tr.setAttribute('data-name', item.name);
+        tr.innerHTML = `
+          <td>${item.index}</td>
+          <td>${item.name}</td>
+          <td>
+            <select class="grade-select" required>
+              <option value="">-- Select Grade --</option>
+              <option value="1 - Very Dissatisfied">1 - Very Dissatisfied</option>
+              <option value="2 - Dissatisfied">2 - Dissatisfied</option>
+              <option value="3 - Neutral">3 - Neutral</option>
+              <option value="4 - Satisfied">4 - Satisfied</option>
+              <option value="5 - Very Satisfied">5 - Very Satisfied</option>
+            </select>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rows = document.querySelectorAll('#studentTableBody tr[data-index]');
+      if (rows.length === 0) {
+        alert('Please select a supervisor with assigned students.');
+        return;
+      }
+
+      const evaluations = [];
+      rows.forEach(row => {
+        evaluations.push({
+          indexNo: row.getAttribute('data-index'),
+          name: row.getAttribute('data-name'),
+          grade: row.querySelector('.grade-select').value
+        });
+      });
+
+      submitBtn.disabled = true;
+      statusMsg.textContent = 'Submitting grades and emailing...';
+      statusMsg.style.color = '#333';
+
+      try {
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            supervisor: supervisorSelect.value,
+            weekProgress: "Step 05 Progress: Project investment plan and the implementation strategy [19 April to 02 May]",
+            evaluations: evaluations
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          statusMsg.textContent = 'Grades successfully submitted and emailed!';
+          statusMsg.style.color = 'green';
+          form.reset();
+          tableBody.innerHTML = '<tr><td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+        } else {
+          statusMsg.textContent = data.error || 'Submission failed.';
+          statusMsg.style.color = 'red';
+        }
+      } catch (err) {
+        statusMsg.textContent = 'Network error. Please try again.';
+        statusMsg.style.color = 'red';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
