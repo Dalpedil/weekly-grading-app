@@ -44,7 +44,7 @@ app.post('/api/submit', async (req, res) => {
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Remarks</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Please comment on the student's progress (Essential)</th>
             </tr>
           </thead>
           <tbody>
