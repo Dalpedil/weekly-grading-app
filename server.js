@@ -23,6 +23,7 @@ app.post('/api/submit', async (req, res) => {
       <td style="border: 1px solid #ddd; padding: 8px;">${item.indexNo}</td>
       <td style="border: 1px solid #ddd; padding: 8px;">${item.name}</td>
       <td style="border: 1px solid #ddd; padding: 8px;"><strong>${item.grade}</strong></td>
+      <td style="border: 1px solid #ddd; padding: 8px;">${item.remarks}</td>
     </tr>
   `).join('');
 
@@ -32,7 +33,7 @@ app.post('/api/submit', async (req, res) => {
       to: ['diland@gmail.com'],
       subject: `Weekly Progress Grades: ${supervisor}`,
       html: `
-        <h3>Weekly Progress Assessment</h3>
+        <h3>Bi — Weekly Progress Assessment</h3>
         <p><strong>Supervisor:</strong> ${supervisor}</p>
         <p><strong>Milestone:</strong> ${weekProgress}</p>
         <p><strong>Submitted Date:</strong> ${new Date().toLocaleString()}</p>
@@ -43,6 +44,7 @@ app.post('/api/submit', async (req, res) => {
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Index No</th>
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Student Name</th>
               <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Assigned Grade</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Remarks</th>
             </tr>
           </thead>
           <tbody>
