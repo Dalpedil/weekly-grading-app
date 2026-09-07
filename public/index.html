@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bi—Weekly Progress Grading</title>
+  <title>Bi — Weekly Progress Grading</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; color: #222; }
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 20px; color: #222; }
     h2 { margin-bottom: 12px; }
     .instruction-box { background-color: #f3f4f6; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
     .form-group { margin-bottom: 20px; }
     label { font-weight: bold; display: block; margin-bottom: 6px; font-size: 14px; }
-    select { width: 100%; padding: 8px 10px; box-sizing: border-box; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    select, input[type="text"] { width: 100%; padding: 8px 10px; box-sizing: border-box; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
     th, td { border: 1px solid #ddd; padding: 9px 12px; text-align: left; }
     th { background-color: #f8fafc; }
-    td select { width: 100%; padding: 6px 8px; }
+    td select, td input[type="text"] { width: 100%; padding: 6px 8px; box-sizing: border-box; }
     button { margin-top: 24px; padding: 12px 20px; background-color: #0066cc; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; }
     button:disabled { background-color: #aaa; }
     #status { margin-top: 15px; font-weight: bold; text-align: center; }
@@ -22,11 +22,11 @@
   </style>
 </head>
 <body>
-  <h2>Bi—Weekly Progress Grading</h2>
+  <h2>Bi — Weekly Progress Grading</h2>
   <div class="instruction-box">
     <strong>Instructions:</strong><br>
     1 = Very Dissatisfied | 5 = Very Satisfied<br><br>
-    <strong> 1st Evaluation:</strong> [19 August to 07 September, 2026]
+    <strong>1st Evaluation:</strong> [19 August to 07 September, 2026]
   </div>
 
   <form id="gradingForm">
@@ -40,14 +40,15 @@
     <table>
       <thead>
         <tr>
-          <th style="width: 120px;">Index No</th>
+          <th style="width: 100px;">Index No</th>
           <th>Student Name</th>
-          <th style="width: 230px;">Grade</th>
+          <th style="width: 200px;">Grade</th>
+          <th style="width: 230px;">Remarks</th>
         </tr>
       </thead>
       <tbody id="studentTableBody">
         <tr>
-          <td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td>
+          <td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td>
         </tr>
       </tbody>
     </table>
@@ -126,7 +127,7 @@
       tableBody.innerHTML = '';
 
       if (!selectedSup) {
-        tableBody.innerHTML = '<tr><td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
         return;
       }
 
@@ -148,6 +149,9 @@
               <option value="5 - Very Satisfied">5 - Very Satisfied</option>
             </select>
           </td>
+          <td>
+            <input type="text" class="remark-input" placeholder="Optional remarks..." />
+          </td>
         `;
         tableBody.appendChild(tr);
       });
@@ -166,7 +170,8 @@
         evaluations.push({
           indexNo: row.getAttribute('data-index'),
           name: row.getAttribute('data-name'),
-          grade: row.querySelector('.grade-select').value
+          grade: row.querySelector('.grade-select').value,
+          remarks: row.querySelector('.remark-input').value.trim() || '—'
         });
       });
 
@@ -190,7 +195,7 @@
           statusMsg.textContent = 'Grades successfully submitted and emailed!';
           statusMsg.style.color = 'green';
           form.reset();
-          tableBody.innerHTML = '<tr><td colspan="3" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
         } else {
           statusMsg.textContent = data.error || 'Submission failed.';
           statusMsg.style.color = 'red';
