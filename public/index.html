@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bi — Weekly Progress Grading</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 20px; color: #222; }
+    body { font-family: Arial, sans-serif; max-width: 950px; margin: 30px auto; padding: 20px; color: #222; }
     h2 { margin-bottom: 12px; }
     .instruction-box { background-color: #f3f4f6; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
     .form-group { margin-bottom: 20px; }
@@ -41,9 +41,9 @@
       <thead>
         <tr>
           <th style="width: 100px;">Index No</th>
-          <th>Student Name</th>
-          <th style="width: 200px;">Grade</th>
-          <th style="width: 240px;">Remarks</th>
+          <th style="width: 200px;">Student Name</th>
+          <th style="width: 180px;">Grade</th>
+          <th>Please comment on the student's progress (Essential)</th>
         </tr>
       </thead>
       <tbody id="studentTableBody">
@@ -150,7 +150,7 @@
             </select>
           </td>
           <td>
-            <input type="text" class="remark-input" placeholder="Optional remarks..." />
+            <input type="text" class="remark-input" placeholder="Enter progress comments..." required />
           </td>
         `;
         tableBody.appendChild(tr);
@@ -171,7 +171,7 @@
           indexNo: row.getAttribute('data-index'),
           name: row.getAttribute('data-name'),
           grade: row.querySelector('.grade-select').value,
-          remarks: row.querySelector('.remark-input').value.trim() || '—'
+          remarks: row.querySelector('.remark-input').value.trim()
         });
       });
 
