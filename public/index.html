@@ -26,7 +26,7 @@
   <div class="instruction-box">
     <strong>Instructions:</strong><br>
     1 = Very Dissatisfied | 5 = Very Satisfied<br><br>
-    <strong>4th Evaluation:</strong> [06 October - 19 October, 2026]
+    <strong>5th Evaluation:</strong> [20 October - 02 November, 2026]
   </div>
 
   <form id="gradingForm">
@@ -146,67 +146,3 @@
               <option value="2 - Dissatisfied">2 - Dissatisfied</option>
               <option value="3 - Neutral">3 - Neutral</option>
               <option value="4 - Satisfied">4 - Satisfied</option>
-              <option value="5 - Very Satisfied">5 - Very Satisfied</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" class="remark-input" placeholder="Enter progress comments..." required />
-          </td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const rows = document.querySelectorAll('#studentTableBody tr[data-index]');
-      if (rows.length === 0) {
-        alert('Please select a supervisor with assigned students.');
-        return;
-      }
-
-      const evaluations = [];
-      rows.forEach(row => {
-        evaluations.push({
-          indexNo: row.getAttribute('data-index'),
-          name: row.getAttribute('data-name'),
-          grade: row.querySelector('.grade-select').value,
-          remarks: row.querySelector('.remark-input').value.trim()
-        });
-      });
-
-      submitBtn.disabled = true;
-      statusMsg.textContent = 'Submitting grades and emailing...';
-      statusMsg.style.color = '#333';
-
-      try {
-        const res = await fetch('/api/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            supervisor: supervisorSelect.value,
-            weekProgress: "4th Evaluation: [06 October - 19 October, 2026]",
-            evaluations: evaluations
-          })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          statusMsg.textContent = 'Grades successfully submitted and emailed!';
-          statusMsg.style.color = 'green';
-          form.reset();
-          tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
-        } else {
-          statusMsg.textContent = data.error || 'Submission failed.';
-          statusMsg.style.color = 'red';
-        }
-      } catch (err) {
-        statusMsg.textContent = 'Network error. Please try again.';
-        statusMsg.style.color = 'red';
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-  </script>
-</body>
-</html>
