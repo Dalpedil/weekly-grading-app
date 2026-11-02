@@ -108,82 +108,130 @@
       { supervisor: "Dr. TKGP Ranasinghe", index: "222371A", name: "Thirimanna N.S." }
     ];
 
-    const supervisorSelect = document.getElementById('supervisorSelect');
-    const tableBody = document.getElementById('studentTableBody');
-    const form = document.getElementById('gradingForm');
-    const statusMsg = document.getElementById('status');
-    const submitBtn = document.getElementById('submitBtn');
+    function initPortal() {
+      const supervisorSelect = document.getElementById('supervisorSelect');
+      const tableBody = document.getElementById('studentTableBody');
+      const form = document.getElementById('gradingForm');
+      const statusMsg = document.getElementById('status');
+      const submitBtn = document.getElementById('submitBtn');
 
-    // Populate unique Supervisors into dropdown
-    const supervisors = [...new Set(dataList.map(item => item.supervisor))].sort();
-    supervisors.forEach(sup => {
-      const opt = document.createElement('option');
-      opt.value = sup;
-      opt.textContent = sup;
-      supervisorSelect.appendChild(opt);
-    });
+      if (!supervisorSelect || !tableBody) return;
 
-    // Filter students by selected supervisor
-    supervisorSelect.addEventListener('change', () => {
-      const selectedSup = supervisorSelect.value;
-      tableBody.innerHTML = '';
+      supervisorSelect.innerHTML = '<option value="">-- Select Supervisor --</option>';
 
-      if (!selectedSup) {
-        tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
-        return;
-      }
-
-      const assignedStudents = dataList.filter(item => item.supervisor === selectedSup);
-      assignedStudents.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.setAttribute('data-index', item.index);
-        tr.setAttribute('data-name', item.name);
-        tr.innerHTML = `
-          <td>${item.index}</td>
-          <td>${item.name}</td>
-          <td>
-            <select class="grade-select" required>
-              <option value="">-- Select Grade --</option>
-              <option value="1 - Very Dissatisfied">1 - Very Dissatisfied</option>
-              <option value="2 - Dissatisfied">2 - Dissatisfied</option>
-              <option value="3 - Neutral">3 - Neutral</option>
-              <option value="4 - Satisfied">4 - Satisfied</option>
-              <option value="5 - Very Satisfied">5 - Very Satisfied</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" class="remark-input" placeholder="Enter progress comments..." required />
-          </td>
-        `;
-        tableBody.appendChild(tr);
+      // Extract unique supervisors and sort them
+      const supervisors = [];
+      dataList.forEach(function(item) {
+        if (supervisors.indexOf(item.supervisor) === -1) {
+          supervisors.push(item.supervisor);
+        }
       });
-    });
+      supervisors.sort();
 
-    // Form submission handler
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const rows = document.querySelectorAll('#studentTableBody tr[data-index]');
-      if (rows.length === 0) {
-        alert('Please select a supervisor with assigned students.');
-        return;
-      }
+      // Populate dropdown
+      supervisors.forEach(function(sup) {
+        const opt = document.createElement('option');
+        opt.value = sup;
+        opt.textContent = sup;
+        supervisorSelect.appendChild(opt);
+      });
 
-      const evaluations = [];
-      rows.forEach(row => {
-        evaluations.push({
-          indexNo: row.getAttribute('data-index'),
-          name: row.getAttribute('data-name'),
-          grade: row.querySelector('.grade-select').value,
-          remarks: row.querySelector('.remark-input').value.trim()
+      // Supervisor change event
+      supervisorSelect.addEventListener('change', function() {
+        const selectedSup = supervisorSelect.value;
+        tableBody.innerHTML = '';
+
+        if (!selectedSup) {
+          tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+          return;
+        }
+
+        const assignedStudents = dataList.filter(function(item) {
+          return item.supervisor === selectedSup;
+        });
+
+        assignedStudents.forEach(function(item) {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-index', item.index);
+          tr.setAttribute('data-name', item.name);
+          tr.innerHTML = 
+            '<td>' + item.index + '</td>' +
+            '<td>' + item.name + '</td>' +
+            '<td>' +
+              '<select class="grade-select" required>' +
+                '<option value="">-- Select Grade --</option>' +
+                '<option value="1 - Very Dissatisfied">1 - Very Dissatisfied</option>' +
+                '<option value="2 - Dissatisfied">2 - Dissatisfied</option>' +
+                '<option value="3 - Neutral">3 - Neutral</option>' +
+                '<option value="4 - Satisfied">4 - Satisfied</option>' +
+                '<option value="5 - Very Satisfied">5 - Very Satisfied</option>' +
+              '</select>' +
+            '</td>' +
+            '<td>' +
+              '<input type="text" class="remark-input" placeholder="Enter progress comments..." required />' +
+            '</td>';
+          tableBody.appendChild(tr);
         });
       });
 
-      submitBtn.disabled = true;
-      statusMsg.textContent = 'Submitting grades and emailing...';
-      statusMsg.style.color = '#333';
+      // Submit handler
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const rows = document.querySelectorAll('#studentTableBody tr[data-index]');
+        if (rows.length === 0) {
+          alert('Please select a supervisor with assigned students.');
+          return;
+        }
 
-      try {
-        const res = await fetch('/api/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON
+        const evaluations = [];
+        rows.forEach(function(row) {
+          evaluations.push({
+            indexNo: row.getAttribute('data-index'),
+            name: row.getAttribute('data-name'),
+            grade: row.querySelector('.grade-select').value,
+            remarks: row.querySelector('.remark-input').value.trim()
+          });
+        });
+
+        submitBtn.disabled = true;
+        statusMsg.textContent = 'Submitting grades and emailing...';
+        statusMsg.style.color = '#333';
+
+        try {
+          const res = await fetch('/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              supervisor: supervisorSelect.value,
+              weekProgress: "5th Evaluation: [20 October - 02 November, 2026]",
+              evaluations: evaluations
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            statusMsg.textContent = 'Grades successfully submitted and emailed!';
+            statusMsg.style.color = 'green';
+            form.reset();
+            tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">Please select a supervisor above to display students.</td></tr>';
+          } else {
+            statusMsg.textContent = data.error || 'Submission failed.';
+            statusMsg.style.color = 'red';
+          }
+        } catch (err) {
+          statusMsg.textContent = 'Network error. Please try again.';
+          statusMsg.style.color = 'red';
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPortal);
+    } else {
+      initPortal();
+    }
+  </script>
+</body>
+</html>
